@@ -5,21 +5,17 @@ const { promisifyAll } = require("bluebird");
 promisifyAll(redis);
 
 const cacheClient = redis.createClient({
-  database: config.redis.db,
-  socket: {
-    host: config.redis.host,
-    port: config.redis.port,
-  },
+  url: `redis://${config.redis.host}:${config.redis.port}/${config.redis.db}`,
 });
 
 const connectCache = async () => {
   await cacheClient.connect();
 
-  cacheClient.on("error", function (error) {
-    console.error(error);
+  cacheClient.on("error", (err) => {
+    console.error(err);
   });
 
-  cacheClient.on("connect", function () {
+  cacheClient.on("connect", () => {
     console.info(`Redis Connected! ${host}:${port}, db: ${db}`);
   });
 };
