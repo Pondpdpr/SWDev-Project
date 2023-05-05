@@ -1,5 +1,6 @@
 const Hotel = require("../models/Hotel");
 const redis = require("../config/redis");
+const config = require("../config/config");
 
 //@desc Get all hotels
 //@route GET /api/v1/hotels
@@ -33,15 +34,17 @@ exports.getHotels = async (req, res, next) => {
 
   // Select Fields
   if (req.query.select) {
-    const fields = req.query.select.split(",").join(" ");
-    selectedFields = req.query.select.split(",").join("-");
+    const splited = req.query.select.split(",");
+    const fields = splited.join(" ");
+    selectedFields = splited.join("-");
     query = query.select(fields);
   }
 
   // Sort
   if (req.query.sort) {
-    const sortBy = req.query.sort.split(",").join(" ");
-    sortByFields = req.query.select.split(",").join("-");
+    const splited = req.query.sort.split(",");
+    const sortBy = splited.join(" ");
+    sortByFields = splited.join("-");
     query = query.sort(sortBy);
   } else {
     query = query.sort("-createdAt");
@@ -103,7 +106,9 @@ exports.getHotels = async (req, res, next) => {
           page,
           limit,
         }),
-        JSON.stringify(hotelRes)
+        JSON.stringify(hotelRes),
+        "EX",
+        config.app.hotelCacheTTL
       );
     } else {
       hotelRes = JSON.parse(hotelRes);
