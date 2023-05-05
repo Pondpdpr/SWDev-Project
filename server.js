@@ -76,7 +76,7 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
 //Mount routers
-app.use("/api/v1/hotel", hotels);
+app.use("/api/v1/hotels", hotels);
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/bookings", bookings);
 
