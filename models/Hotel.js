@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const HotelSchema = new mongoose.Schema({
@@ -16,17 +17,38 @@ const HotelSchema = new mongoose.Schema({
     required: [true, "Please add a telephone number"],
     unique: true,
   },
-  totalRoom: {
-    type: Number,
-    min: 0,
+  size: {
+    type: String,
+    enum: ["small", "medium", "big"],
+    required: [true, "Please add your hotel size"],
+    default: "medium",
   },
-  totalAvailableRoom: {
-    type: Number,
-    min: 0,
+  target: {
+    type: String,
+    enum: [
+      "business",
+      "airport",
+      "suite",
+      "extended stay",
+      "serviced apartment",
+      "resort",
+      "bed and breakfast",
+      "vacation rentals",
+      "casino",
+      "conference",
+    ],
+    required: [true, "please add the hotel target"],
+    default: "suite",
   },
-  rooms: {
-    type: Schema.Types.ObjectId,
-    ref: "Room",
+  level: {
+    type: String,
+    enum: ["world class", "mid-range", "budget"],
+    required: [true, "Please add a level of service"],
+    default: "mid-range",
+  },
+  ownership: {
+    type: String,
+    enum: ["independent", "single owner", "chain"],
   },
   createAt: {
     type: Date,

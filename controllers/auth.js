@@ -5,10 +5,10 @@ const User = require("../models/User");
 //@access Public
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, role, password } = req.body;
+    const { name, email, role, password, tel } = req.body;
 
     //Create User
-    const user = await User.create({ name, email, role, password });
+    const user = await User.create({ name, email, role, password, tel });
 
     //Create Toekn
     //   const token = user.getSignedJwtToken();
@@ -75,6 +75,7 @@ const sendTokenResponse = (user, statusCode, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      tel: user.tel,
       //end for frontend
       token,
     });
