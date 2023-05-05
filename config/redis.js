@@ -14,10 +14,6 @@ const connectCache = async () => {
   cacheClient.on("error", (err) => {
     console.error(err);
   });
-
-  cacheClient.on("connect", () => {
-    console.info(`Redis Connected! ${host}:${port}, db: ${db}`);
-  });
 };
 
 module.exports.connectCache = connectCache;
