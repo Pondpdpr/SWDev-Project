@@ -1,31 +1,37 @@
 const redis = require("redis");
+const config = require("./config");
 const { promisifyAll } = require("bluebird");
-const dotenv = require("dotenv");
-
-dotenv.config({ path: "./config/config.env" });
 
 promisifyAll(redis);
 
-const host = process.env.REDIS_HOST || "localhost";
-const port = process.env.REDIS_PORT || 6379;
-const db = process.env.REDIS_DB || 0;
+class Redis {
+  static cacheClient;
 
-const cacheClient = redis.createClient({
-  host,
-  port,
-  db,
-});
+  static {
+    Redis.cacheClient = redis.createClient({
+      database: config.redis.db,
+      socket: {
+        host: config.redis.host,
+        port: config.redis.port,
+      },
+    });
+    console.debug(
+      `redis config hostname=${config.redis.host}:${config.redis.port}, db=${config.redis.db}`
+    );
+  }
 
-module.exports.connectCache = async () => {
-  await cacheClient.connect();
+  static connectCache = async () => {
+    await Redis.cacheClient.connect();
 
-  cacheClient.on("error", function (error) {
-    console.error(error);
-  });
+    Redis.cacheClient.on("error", function (error) {
+      console.error(error);
+    });
 
-  cacheClient.on("connect", function () {
-    console.info(`Redis Connected! ${host}:${port}, db: ${db}`);
-  });
-};
+    Redis.cacheClient.on("connect", function () {
+      console.info(`Redis Connected! ${host}:${port}, db: ${db}`);
+    });
+  };
+}
 
-module.exports.cacheClient = cacheClient;
+module.exports.connectCache = Redis.connectCache;
+module.exports.cacheClient = Redis.cacheClient;
