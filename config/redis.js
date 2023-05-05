@@ -4,34 +4,25 @@ const { promisifyAll } = require("bluebird");
 
 promisifyAll(redis);
 
-class Redis {
-  static cacheClient;
+const cacheClient = redis.createClient({
+  database: config.redis.db,
+  socket: {
+    host: config.redis.host,
+    port: config.redis.port,
+  },
+});
 
-  static {
-    Redis.cacheClient = redis.createClient({
-      database: config.redis.db,
-      socket: {
-        host: config.redis.host,
-        port: config.redis.port,
-      },
-    });
-    console.debug(
-      `redis config hostname=${config.redis.host}:${config.redis.port}, db=${config.redis.db}`
-    );
-  }
+const connectCache = async () => {
+  await cacheClient.connect();
 
-  static connectCache = async () => {
-    await Redis.cacheClient.connect();
+  cacheClient.on("error", function (error) {
+    console.error(error);
+  });
 
-    Redis.cacheClient.on("error", function (error) {
-      console.error(error);
-    });
+  cacheClient.on("connect", function () {
+    console.info(`Redis Connected! ${host}:${port}, db: ${db}`);
+  });
+};
 
-    Redis.cacheClient.on("connect", function () {
-      console.info(`Redis Connected! ${host}:${port}, db: ${db}`);
-    });
-  };
-}
-
-module.exports.connectCache = Redis.connectCache;
-module.exports.cacheClient = Redis.cacheClient;
+module.exports.connectCache = connectCache;
+module.exports.cacheClient = cacheClient;
