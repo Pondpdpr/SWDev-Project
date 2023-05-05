@@ -1,10 +1,14 @@
 const Hotel = require("../models/Hotel");
+const redis = require("../config/redis");
 
 //@desc Get all hotels
 //@route GET /api/v1/hotels
 //@access Public
 exports.getHotels = async (req, res, next) => {
+  let hotelRes;
   let query;
+  let selectedFields;
+  let sortByFields;
 
   // Copy req.query
   const reqQuery = { ...req.query };
@@ -30,12 +34,14 @@ exports.getHotels = async (req, res, next) => {
   // Select Fields
   if (req.query.select) {
     const fields = req.query.select.split(",").join(" ");
+    selectedFields = req.query.select.split(",").join("-");
     query = query.select(fields);
   }
 
   // Sort
   if (req.query.sort) {
     const sortBy = req.query.sort.split(",").join(" ");
+    sortByFields = req.query.select.split(",").join("-");
     query = query.sort(sortBy);
   } else {
     query = query.sort("-createdAt");
@@ -52,11 +58,18 @@ exports.getHotels = async (req, res, next) => {
 
   try {
     // try to get cache
-    hotels = await cacheClient.get(getCacheKey(reqQuery));
+    hotelRes = await redis.cacheClient.get(
+      getCacheKey({
+        selectedFields,
+        sortByFields,
+        page,
+        limit,
+      })
+    );
 
-    if (hotels == null) {
+    if (hotelRes == null) {
       // Executing query
-      hotels = await query;
+      const hotels = await query;
 
       // Pagination result
       const pagination = {};
@@ -75,16 +88,28 @@ exports.getHotels = async (req, res, next) => {
         };
       }
 
+      hotelRes = {
+        success: true,
+        count: hotels.length,
+        pagination,
+        data: hotels,
+      };
+
       // save cache
-      await client.set(key, hotels);
+      await redis.cacheClient.set(
+        getCacheKey({
+          selectedFields,
+          sortByFields,
+          page,
+          limit,
+        }),
+        JSON.stringify(hotelRes)
+      );
+    } else {
+      hotelRes = JSON.parse(hotelRes);
     }
 
-    res.status(200).json({
-      success: true,
-      count: hotels.length,
-      pagination,
-      data: hotels,
-    });
+    res.status(200).json(hotelRes);
   } catch (err) {
     console.log(err.message);
     res.status(400).json({ success: false });
@@ -112,8 +137,12 @@ exports.getHotel = async (req, res, next) => {
 //@route POST /api/v1/hotels
 //@access Private
 exports.createHotel = async (req, res, next) => {
-  const hotel = await Hotel.create(req.body);
-  res.status(201).json({ success: true, data: hotel });
+  try {
+    const hotel = await Hotel.create(req.body);
+    res.status(201).json({ success: true, data: hotel });
+  } catch (err) {
+    res.status(400).json({ success: false });
+  }
 };
 
 //@desc Update hotel
@@ -155,4 +184,8 @@ exports.deleteHotel = async (req, res, next) => {
   } catch {
     res.status(400).json({ success: false });
   }
+};
+
+const getCacheKey = (query) => {
+  return `hotel-${query.select}-${query.sort}-${query.page}-${query.limit}`;
 };
