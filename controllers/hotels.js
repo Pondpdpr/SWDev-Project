@@ -10,6 +10,10 @@ exports.getHotels = async (req, res, next) => {
   let query;
   let selectedFields;
   let sortByFields;
+  let target;
+  let size;
+  let level;
+  let ownership;
 
   // Copy req.query
   const reqQuery = { ...req.query };
@@ -50,6 +54,26 @@ exports.getHotels = async (req, res, next) => {
     query = query.sort("-createdAt");
   }
 
+  // Target
+  if (req.query.target) {
+    target = req.query.target.split(",").join("-");
+  }
+
+  // Size
+  if (req.query.size) {
+    size = req.query.size.split(",").join("-");
+  }
+
+  // Level
+  if (req.query.level) {
+    level = req.query.level.split(",").join("-");
+  }
+
+  // Ownership
+  if (req.query.ownership) {
+    ownership = req.query.ownership.split(",").join("-");
+  }
+
   // Pagination
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 25;
@@ -67,6 +91,10 @@ exports.getHotels = async (req, res, next) => {
         sortByFields,
         page,
         limit,
+        target,
+        size,
+        level,
+        ownership,
       })
     );
 
@@ -105,6 +133,10 @@ exports.getHotels = async (req, res, next) => {
           sortByFields,
           page,
           limit,
+          target,
+          size,
+          level,
+          ownership,
         }),
         JSON.stringify(hotelRes),
         {
@@ -193,5 +225,5 @@ exports.deleteHotel = async (req, res, next) => {
 };
 
 const getCacheKey = (query) => {
-  return `hotel-${query.select}-${query.sort}-${query.page}-${query.limit}`;
+  return `hotel-${query.select}-${query.sort}-${query.page}-${query.limit}-${query.target}-${query.size}-${query.level}-${query.ownership}`;
 };
