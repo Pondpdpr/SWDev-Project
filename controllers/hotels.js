@@ -107,8 +107,9 @@ exports.getHotels = async (req, res, next) => {
           limit,
         }),
         JSON.stringify(hotelRes),
-        "EX",
-        config.app.hotelCacheTTL
+        {
+          EX: config.app.hotelCacheTTL,
+        }
       );
     } else {
       hotelRes = JSON.parse(hotelRes);
