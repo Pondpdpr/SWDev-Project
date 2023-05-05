@@ -1,7 +1,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
-const connectDB = require("./config/db");
 const cors = require("cors");
 const mongoSanitize = require("express-mongo-sanitize");
 const helmet = require("helmet");
@@ -10,12 +9,15 @@ const rateLimit = require("express-rate-limit");
 const hpp = require("hpp");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUI = require("swagger-ui-express");
+const db = require("./config/db");
+const redis = require("./config/redis");
 
 //Load env vars
 dotenv.config({ path: "./config/config.env" });
 
 //Connect to database
-connectDB();
+db.connectDB();
+redis.connectCache();
 
 const app = express();
 
@@ -82,7 +84,15 @@ app.use("/api/v1/bookings", bookings);
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, console.log("Server running in ", process.env.NODE_ENV, " mode on port ", PORT));
+const server = app.listen(
+  PORT,
+  console.log(
+    "Server running in ",
+    process.env.NODE_ENV,
+    " mode on port ",
+    PORT
+  )
+);
 
 //Handle unhadles promise rejections
 process.on("unhandledRejection", (err, promise) => {
