@@ -19,7 +19,10 @@ exports.getHotels = async (req, res, next) => {
   let queryStr = JSON.stringify(reqQuery);
 
   // Create operators ($gt, $gte, etc)
-  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, (match) => `$${match}`);
+  queryStr = queryStr.replace(
+    /\b(gt|gte|lt|lte|in)\b/g,
+    (match) => `$${match}`
+  );
 
   // Finding resource
   query = Hotel.find(JSON.parse(queryStr)).populate("bookings");
@@ -48,25 +51,34 @@ exports.getHotels = async (req, res, next) => {
   query = query.skip(startIndex).limit(limit);
 
   try {
-    // Executing query
-    const hotels = await query;
+    // try to get cache
+    hotels = await cacheClient.get(getCacheKey(reqQuery));
 
-    // Pagination result
-    const pagination = {};
+    if (hotels == null) {
+      // Executing query
+      hotels = await query;
 
-    if (endIndex < total) {
-      pagination.next = {
-        page: page + 1,
-        limit,
-      };
+      // Pagination result
+      const pagination = {};
+
+      if (endIndex < total) {
+        pagination.next = {
+          page: page + 1,
+          limit,
+        };
+      }
+
+      if (startIndex > 0) {
+        pagination.prev = {
+          page: page - 1,
+          limit,
+        };
+      }
+
+      // save cache
+      await client.set(key, hotels);
     }
 
-    if (startIndex > 0) {
-      pagination.prev = {
-        page: page - 1,
-        limit,
-      };
-    }
     res.status(200).json({
       success: true,
       count: hotels.length,
