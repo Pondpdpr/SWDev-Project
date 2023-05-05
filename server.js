@@ -1,5 +1,4 @@
 const express = require("express");
-const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const mongoSanitize = require("express-mongo-sanitize");
@@ -11,9 +10,6 @@ const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUI = require("swagger-ui-express");
 const db = require("./config/db");
 const redis = require("./config/redis");
-
-//Load env vars
-dotenv.config({ path: "./config/config.env" });
 
 //Connect to database
 db.connectDB();
@@ -57,6 +53,7 @@ app.use(hpp());
 const hotels = require("./routes/hotels");
 const auth = require("./routes/auth");
 const bookings = require("./routes/bookings");
+const config = require("./config/config");
 
 const swaggerOptions = {
   swaggerDefinition: {
@@ -82,15 +79,13 @@ app.use("/api/v1/hotels", hotels);
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/bookings", bookings);
 
-const PORT = process.env.PORT || 5000;
-
 const server = app.listen(
-  PORT,
-  console.log(
+  config.app.port,
+  console.info(
     "Server running in ",
-    process.env.NODE_ENV,
+    config.app.env,
     " mode on port ",
-    PORT
+    config.app.port
   )
 );
 
