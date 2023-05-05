@@ -50,6 +50,10 @@ const HotelSchema = new mongoose.Schema({
     type: String,
     enum: ["independent", "single owner", "chain"],
   },
+  bookings: {
+    type: Schema.Types.ObjectId,
+    ref: "bookings",
+  },
   createAt: {
     type: Date,
     default: Date.now,
